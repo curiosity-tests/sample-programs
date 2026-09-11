@@ -1,6 +1,7 @@
 # This workflow will install Python dependencies, download Docker images, and test every script in the repo
 
 name: Glotter
+run-name: "Glotter ${{ inputs.leg || github.event_name }} ${{ inputs.racecar_run }}"
 
 permissions:
   contents: read
@@ -24,6 +25,24 @@ on:
     # Run every Wednesday at 10:39 UTC (randomly chosen)
     - cron: '39 10 * * 3'
 
+  workflow_dispatch:
+    inputs:
+      leg:
+        description: "baseline (uninstrumented) or instrumented (under chalk/curiosity)"
+        type: choice
+        options: [instrumented, baseline]
+        default: baseline
+      profile:
+        description: "CrashOverride chalk profile"
+        type: string
+        default: curiosity-tests-racecar
+      racecar_run:
+        description: "racecar correlation token, echoed into the run name"
+        type: string
+        default: ""
+
+env:
+  CHALK_ON: ${{ inputs.leg == 'instrumented' }}
 jobs:
 
   # We need this job to check if changed files should trigger testing
