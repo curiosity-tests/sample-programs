@@ -4,6 +4,7 @@ name: Glotter
 run-name: "Glotter ${{ inputs.leg || github.event_name }} ${{ inputs.racecar_run }}"
 
 permissions:
+  id-token: write
   contents: read
 
 on:
@@ -54,10 +55,16 @@ jobs:
       status: ${{ steps.changed-files.outputs.any_changed }}
       changed_files: ${{ steps.changed-files.outputs.all_changed_files }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: crashappsec/action-checkout@main
       with:
+        chalk: ${{ env.CHALK_ON }}
+        profile: ${{ inputs.profile || 'curiosity-tests-racecar' }}
+        lfs: false
         fetch-depth: 2
-
+    - name: Assert instrumentation is live
+      if: env.CHALK_ON == 'true'
+      run: |
+        test -n "${CURIOSITY_ROOT:-}" || { echo "::error::CURIOSITY_ROOT unset - observables never installed"; exit 1; }
     - name: Get changed code files
       id: changed-files
       uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
@@ -98,10 +105,16 @@ jobs:
         remove-codeql: true
         remove-cached-tools: true
 
-    - uses: actions/checkout@v6
+    - uses: crashappsec/action-checkout@main
       with:
+        chalk: ${{ env.CHALK_ON }}
+        profile: ${{ inputs.profile || 'curiosity-tests-racecar' }}
+        lfs: false
         fetch-depth: 2
-
+    - name: Assert instrumentation is live
+      if: env.CHALK_ON == 'true'
+      run: |
+        test -n "${CURIOSITY_ROOT:-}" || { echo "::error::CURIOSITY_ROOT unset - observables never installed"; exit 1; }
     - name: Read repo config
       uses: Elisity/action-read-yaml@v0.2
       id: repo-config
